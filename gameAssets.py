@@ -3,14 +3,16 @@ pygame.init()
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
 
+#Skeleton Assets
+skelWalkRight = pygame.image.load("Assets/Skeletons/Skeleton Walk.gif")
+skelWalkLeft = pygame.transform.flip(pygame.image.load("Assets/Skeletons/Skeleton Walk.gif"), True, False)
+skelIdle = pygame.image.load("Assets/Skeletons/Skeleton Idle.gif")
+
+#Player Assets
 walkRight =[pygame.image.load("Assets/Player/knight iso char_run right_0.png"), pygame.image.load("Assets/Player/knight iso char_run right_1.png"), pygame.image.load("Assets/Player/knight iso char_run right_2.png"), pygame.image.load("Assets/Player/knight iso char_run right_3.png"), pygame.image.load("Assets/Player/knight iso char_run right_4.png"), pygame.image.load("Assets/Player/knight iso char_run right_5.png")]
-
 walkLeft = [pygame.image.load("Assets/Player/knight iso char_run left_0.png"), pygame.image.load("Assets/Player/knight iso char_run left_1.png"), pygame.image.load("Assets/Player/knight iso char_run left_2.png"), pygame.image.load("Assets/Player/knight iso char_run left_3.png"), pygame.image.load("Assets/Player/knight iso char_run left_4.png"), pygame.image.load("Assets/Player/knight iso char_run left_5.png")]
-
 walkUp = [pygame.image.load("Assets/Player/knight iso char_run up_0.png"), pygame.image.load("Assets/Player/knight iso char_run up_1.png"), pygame.image.load("Assets/Player/knight iso char_run up_2.png"), pygame.image.load("Assets/Player/knight iso char_run up_3.png"), pygame.image.load("Assets/Player/knight iso char_run up_4.png"), pygame.image.load("Assets/Player/knight iso char_run up_4.png")]
-
 walkDown = [pygame.image.load("Assets/Player/knight iso char_run down_0.png"), pygame.image.load("Assets/Player/knight iso char_run down_1.png"), pygame.image.load("Assets/Player/knight iso char_run down_2.png"), pygame.image.load("Assets/Player/knight iso char_run down_3.png"), pygame.image.load("Assets/Player/knight iso char_run down_4.png"), pygame.image.load("Assets/Player/knight iso char_run down_4.png")]
-
 idle = [pygame.image.load("Assets/Player/knight iso char_idle_0.png"), pygame.image.load("Assets/Player/knight iso char_idle_1.png"), pygame.image.load("Assets/Player/knight iso char_idle_2.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png")]
 
 health = [pygame.image.load("Assets/Dungeon/HP_Value_0.png"), pygame.image.load("Assets/Dungeon/HP_Value_1.png"), pygame.image.load("Assets/Dungeon/HP_Value_2.png"), pygame.image.load("Assets/Dungeon/HP_Value_3.png"), pygame.image.load("Assets/Dungeon/HP_Value_4.png"), pygame.image.load("Assets/Dungeon/HP_Value_5.png")]
@@ -22,7 +24,6 @@ class player():
         self.width = width
         self.height = height
         self.vel = 3
-        self.isJump = False
         self.left = False
         self.right = False
         self.up = False
@@ -69,6 +70,37 @@ class player():
                 self.walkCount +=1
             if self.up:
                 window.blit(pygame.image.load("Assets/Player/knight iso char_idle up_0.png"), (self.x, self.y))
+
+class enemy():
+    def __init__(self, type, x, y, width, height):
+        self.type = type
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 3
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = True
+        self.walkCount = 0
+        self.standing = True
+        self.healthLevel = 5
+
+class enemyController():
+    def __init__(self, enemy):
+        self.enemy = enemy
+
+    def draw(self, window):
+        if self.enemy.type == "Skeleton":
+            if not(self.enemy.standing):
+                if self.enemy.left:
+                    window.blit(pygame.transform.scale(skelWalkLeft, (50,64)), (self.enemy.x,self.enemy.y))
+                if self.enemy.right:
+                    window.blit(pygame.transform.scale(skelWalkRight, (50,64)), (self.enemy.x,self.enemy.y))
+            else:
+                window.blit(pygame.transform.scale(skelIdle, (50,64)), (self.enemy.x,self.enemy.y))
+
 
 class Controller():
     def __init__(self, player):
@@ -155,12 +187,15 @@ def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
     man.draw(window)
+    enemyController.draw(window)
     control.damageTracker(window)
     pygame.display.update()
 
 
 man = player(200, 410, 64,64)
+skel = enemy("Skeleton", 700, 100, 64, 64)
 control = Controller(man)
+enemyController = enemyController(skel)
 run = True
 clock = pygame.time.Clock()
 while run:
