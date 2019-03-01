@@ -1,3 +1,4 @@
+import math
 import pygame
 pygame.init()
 window = pygame.display.set_mode((800,600))
@@ -72,13 +73,13 @@ class player():
                 window.blit(pygame.image.load("Assets/Player/knight iso char_idle up_0.png"), (self.x, self.y))
 
 class enemy():
-    def __init__(self, type, x, y, width, height):
+    def __init__(self, type, x, y, width, height, vel):
         self.type = type
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.vel = 3
+        self.vel = vel
         self.left = False
         self.right = False
         self.up = False
@@ -101,6 +102,24 @@ class enemyController():
             else:
                 window.blit(pygame.transform.scale(skelIdle, (50,64)), (self.enemy.x,self.enemy.y))
 
+    def moveEnemy(self):
+        if self.enemy.type == "Skeleton":
+            if (math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 425):
+                self.enemy.standing = False
+                if self.enemy.y > man.y:
+                    self.enemy.y -= self.enemy.vel
+                if self.enemy.y < man.y:
+                    self.enemy.y += self.enemy.vel
+                if self.enemy.x > man.x:
+                    self.enemy.x -= self.enemy.vel
+                    self.enemy.left = True
+                    self.enemy.right = False
+                if self.enemy.x < man.x:
+                    self.enemy.x += self.enemy.vel
+                    self.enemy.left = False
+                    self.enemy.right = True
+            else:
+                self.enemy.standing = True
 
 class Controller():
     def __init__(self, player):
@@ -189,11 +208,12 @@ def redrawGameWindow():
     man.draw(window)
     enemyController.draw(window)
     control.damageTracker(window)
+
     pygame.display.update()
 
 
 man = player(200, 410, 64,64)
-skel = enemy("Skeleton", 700, 100, 64, 64)
+skel = enemy("Skeleton", 700, 100, 64, 64, 1.5)
 control = Controller(man)
 enemyController = enemyController(skel)
 run = True
@@ -205,6 +225,8 @@ while run:
 
     control.movePlayer(keys)
 #    control.damageTracker()
+
+    enemyController.moveEnemy()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
