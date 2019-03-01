@@ -1,13 +1,13 @@
-gitimport math
+import math
 import pygame
 pygame.init()
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
 
 #Skeleton Assets
-skelWalkRight = pygame.image.load("Assets/Skeletons/Skeleton Walk.gif")
-skelWalkLeft = pygame.transform.flip(pygame.image.load("Assets/Skeletons/Skeleton Walk.gif"), True, False)
+skelWalkRight = [pygame.image.load("Assets/Skeletons/Walking_0.gif"), pygame.image.load("Assets/Skeletons/Walking_1.gif"), pygame.image.load("Assets/Skeletons/Walking_2.gif"), pygame.image.load("Assets/Skeletons/Walking_3.gif"), pygame.image.load("Assets/Skeletons/Walking_4.gif"), pygame.image.load("Assets/Skeletons/Walking_5.gif"), pygame.image.load("Assets/Skeletons/Walking_6.gif"), pygame.image.load("Assets/Skeletons/Walking_7.gif"), pygame.image.load("Assets/Skeletons/Walking_8.gif"), pygame.image.load("Assets/Skeletons/Walking_9.gif"), pygame.image.load("Assets/Skeletons/Walking_10.gif"), pygame.image.load("Assets/Skeletons/Walking_11.gif"), pygame.image.load("Assets/Skeletons/Walking_12.gif") ]
 skelIdle = pygame.image.load("Assets/Skeletons/Skeleton Idle.gif")
+skelAttack = [pygame.image.load("Assets/Skeletons/Attack_0.gif"), pygame.image.load("Assets/Skeletons/Attack_1.gif"), pygame.image.load("Assets/Skeletons/Attack_2.gif"), pygame.image.load("Assets/Skeletons/Attack_3.gif"), pygame.image.load("Assets/Skeletons/Attack_4.gif"), pygame.image.load("Assets/Skeletons/Attack_5.gif"), pygame.image.load("Assets/Skeletons/Attack_6.gif"), pygame.image.load("Assets/Skeletons/Attack_7.gif"), pygame.image.load("Assets/Skeletons/Attack_8.gif"), pygame.image.load("Assets/Skeletons/Attack_9.gif"), pygame.image.load("Assets/Skeletons/Attack_10.gif"), pygame.image.load("Assets/Skeletons/Attack_11.gif"), pygame.image.load("Assets/Skeletons/Attack_12.gif"), pygame.image.load("Assets/Skeletons/Attack_13.gif"), pygame.image.load("Assets/Skeletons/Attack_14.gif"), pygame.image.load("Assets/Skeletons/Attack_15.gif"), pygame.image.load("Assets/Skeletons/Attack_16.gif"), pygame.image.load("Assets/Skeletons/Attack_17.gif")]
 
 #Player Assets
 walkRight =[pygame.image.load("Assets/Player/knight iso char_run right_0.png"), pygame.image.load("Assets/Player/knight iso char_run right_1.png"), pygame.image.load("Assets/Player/knight iso char_run right_2.png"), pygame.image.load("Assets/Player/knight iso char_run right_3.png"), pygame.image.load("Assets/Player/knight iso char_run right_4.png"), pygame.image.load("Assets/Player/knight iso char_run right_5.png")]
@@ -31,7 +31,9 @@ class player():
         self.down = True
         self.walkCount = 0
         self.standing = True
+        self.attacking = False
         self.healthLevel = 5
+        self.detected = False
 
     def draw(self, window):
         if self.walkCount + 1 > 30:
@@ -86,6 +88,7 @@ class enemy():
         self.down = True
         self.walkCount = 0
         self.standing = True
+        self.attacking = False
         self.healthLevel = 5
 
 class enemyController():
@@ -94,30 +97,57 @@ class enemyController():
 
     def draw(self, window):
         if self.enemy.type == "Skeleton":
-            if not(self.enemy.standing):
+            if self.enemy.walkCount + 1 > 36:
+                self.enemy.walkCount = 0
+
+            if self.enemy.attacking and self.enemy.right:
+                window.blit(pygame.transform.scale(skelAttack[self.enemy.walkCount//3], (50,64)), (self.enemy.x,self.enemy.y))
+                self.enemy.walkCount += 1
+            elif self.enemy.attacking and self.enemy.left:
+                window.blit(pygame.transform.flip(pygame.transform.scale(skelAttack[self.enemy.walkCount//3], (50,64)), True, False), (self.enemy.x,self.enemy.y))
+                self.enemy.walkCount += 1
+
+            if not(self.enemy.standing) and not(self.enemy.attacking):
                 if self.enemy.left:
-                    window.blit(pygame.transform.scale(skelWalkLeft, (50,64)), (self.enemy.x,self.enemy.y))
+                    window.blit(pygame.transform.scale(pygame.transform.flip(skelWalkRight[self.enemy.walkCount//3], True, False), (50,64)), (self.enemy.x,self.enemy.y))
+                    self.enemy.walkCount += 1
                 if self.enemy.right:
-                    window.blit(pygame.transform.scale(skelWalkRight, (50,64)), (self.enemy.x,self.enemy.y))
-            else:
+                    window.blit(pygame.transform.scale(skelWalkRight[self.enemy.walkCount//3], (50,64)), (self.enemy.x,self.enemy.y))
+                    self.enemy.walkCount += 1
+            elif self.enemy.standing:
                 window.blit(pygame.transform.scale(skelIdle, (50,64)), (self.enemy.x,self.enemy.y))
+
 
     def moveEnemy(self):
         if self.enemy.type == "Skeleton":
             if (math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 425):
                 self.enemy.standing = False
-                if self.enemy.y > man.y:
-                    self.enemy.y -= self.enemy.vel
-                if self.enemy.y < man.y:
-                    self.enemy.y += self.enemy.vel
-                if self.enemy.x > man.x:
-                    self.enemy.x -= self.enemy.vel
-                    self.enemy.left = True
-                    self.enemy.right = False
-                if self.enemy.x < man.x:
-                    self.enemy.x += self.enemy.vel
-                    self.enemy.left = False
-                    self.enemy.right = True
+                man.detected = True
+                if man.detected == True and not(self.enemy.attacking):
+
+                    if self.enemy.right:
+                        if(math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 70):
+                            self.enemy.attacking = True
+
+                    if(math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 70):
+                        self.enemy.attacking = True
+
+                    if self.enemy.y > man.y and not(self.enemy.standing):
+                        self.enemy.y -= self.enemy.vel
+                    elif self.enemy.y < man.y and not(self.enemy.standing):
+                        self.enemy.y += self.enemy.vel
+
+                    if self.enemy.x > man.x and not(self.enemy.standing): # + self.enemy.width:
+                        self.enemy.x -= self.enemy.vel
+                        self.enemy.left = True
+                        self.enemy.right = False
+                    elif self.enemy.x < man.x and not(self.enemy.standing): # - self.enemy.width/2:
+                        self.enemy.x += self.enemy.vel
+                        self.enemy.left = False
+                        self.enemy.right = True
+
+#                if self.enemy.x == man.x and self.enemy.y == man.y:
+#                    self.enemy.standing = True
             else:
                 self.enemy.standing = True
 
@@ -188,10 +218,7 @@ class Controller():
             self.player.standing = False
         else:
             self.player.standing = True
-#            self.player.down = False
-#            self.player.up = False
-#            self.player.left = False
-#            self.player.right = False
+
         def attack(self, attackType):
             #definition here
             return
@@ -206,6 +233,8 @@ def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
     man.draw(window)
+    pygame.draw.rect(window, (255,255,255), (man.x, man.y, man.width, man.height), 1)       #hitbox
+    pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
     enemyController.draw(window)
     control.damageTracker(window)
 
@@ -213,7 +242,7 @@ def redrawGameWindow():
 
 
 man = player(200, 410, 64,64)
-skel = enemy("Skeleton", 700, 100, 64, 64, 1.5)
+skel = enemy("Skeleton", 700, 100, 64, 64, 1)
 control = Controller(man)
 enemyController = enemyController(skel)
 run = True
