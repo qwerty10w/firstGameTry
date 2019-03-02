@@ -11,7 +11,7 @@ class player():
         self.y = y
         self.width = width
         self.height = height
-        self.vel = 1.25
+        self.vel = 2
         self.left = False
         self.right = False
         self.up = False
@@ -21,6 +21,7 @@ class player():
         self.attacking = False
         self.healthLevel = 5
         self.detected = False
+        self.damaged  = False
 
     def draw(self, window):
         if self.walkCount + 1 > 30:
@@ -77,6 +78,7 @@ class enemy():
         self.attackCount = 0
         self.standing = True
         self.attacking = False
+        self.Dmg = False
         self.healthLevel = 5
 
 class enemyController():
@@ -92,6 +94,8 @@ class enemyController():
                 self.enemy.attacking = False
                 self.enemy.left = False
                 self.enemy.right = False
+                self.enemy.Dmg = False
+                man.damaged  = False
                 #self.enemy.standing = True
 
             if self.enemy.attacking and self.enemy.right:
@@ -99,12 +103,15 @@ class enemyController():
                 self.enemy.attackCount += 1
                 if self.enemy.attackCount >= 24 and self.enemy.attackCount <= 33:
                     pygame.draw.rect(window, (255,255,255), (self.enemy.x + 20, self.enemy.y, 64, 64), 1)
+                    self.enemy.Dmg = True
+
 
             elif self.enemy.attacking and self.enemy.left:
                 window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.enemy.attackCount//3], True, False)), (self.enemy.x - 40, self.enemy.y - 9))
                 self.enemy.attackCount += 1
                 if self.enemy.attackCount >= 24 and self.enemy.attackCount <= 33:
                     pygame.draw.rect(window, (255,255,255), (self.enemy.x - 35, self.enemy.y, 64, 64), 1)
+                    self.enemy.Dmg = True
 
             if not(self.enemy.standing) and not(self.enemy.attacking):
                 if self.enemy.left:
@@ -146,7 +153,7 @@ class enemyController():
                         self.enemy.left = False
                         self.enemy.right = True
 
-class Controller():
+class playerController():
     def __init__(self, player):
         self.player = player
 
@@ -221,8 +228,17 @@ class Controller():
             #definition here
             return
 
+class gameController():
+    def __init__(self, player, enemy):
+        self.player = player
+        self.enemy = enemy
+
     def damageTracker(self, window):
+        if self.player.x + self.player.width + 25 >= self.enemy.x - 35 and self.player.x + self.player.width + 25 <= self.enemy.x + 20 + self.enemy.width and self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height and self.enemy.Dmg and not(self.player.damaged ):
+            self.player.healthLevel -= 1
+            self.player.damaged  = True
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
+        self.enemy.Dmg = False
 
 def redrawGameWindow():
 #    window.blit(bg, (0,0))
@@ -231,15 +247,16 @@ def redrawGameWindow():
     #pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
     enemyController.draw(window)
     man.draw(window)
-    control.damageTracker(window)
+    controlCenter.damageTracker(window)
 
     pygame.display.update()
 
 
 skel = enemy("Skeleton", 700, 100, 64, 64, 1)
 man = player(200, 410, 32, 80)
-control = Controller(man)
+control = playerController(man)
 enemyController = enemyController(skel)
+controlCenter = gameController(man, skel)
 run = True
 clock = pygame.time.Clock()
 while run:
