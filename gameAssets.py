@@ -104,7 +104,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), (self.x + 20, self.y, 64, 64), 1)
+                    #pygame.draw.rect(window, (255,255,255), (self.x + 20, self.y, 64, 64), 1) #hitbox
                     self.Dmg = True
 
 
@@ -112,7 +112,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, 64, 64), 1)
+                    #pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, 64, 64), 1) #hitbox
                     self.Dmg = True
 
             if not(self.standing) and not(self.attacking):
@@ -125,39 +125,33 @@ class skeleton(enemy):
             elif self.standing:
                 window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
                 self.walkCount += 1
+    def move(self):
+        if (math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 425):
+            self.standing = False
+            man.detected = True
+            if man.detected == True and not(self.attacking):
+                if self.right and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 10:
+                    self.attacking = True
 
-class enemyController():
-    def __init__(self, enemy):
-        self.enemy = enemy
+                if self.left and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 70:
+                    self.attacking = True
 
-    def moveEnemy(self):
-        if self.enemy.type == "Skeleton":
-            if (math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 425):
-                self.enemy.standing = False
-                man.detected = True
-                if man.detected == True and not(self.enemy.attacking):
-                    if self.enemy.right and math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 10:
-                        self.enemy.attacking = True
+                if self.right and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 30:
+                    self.attacking = True
 
-                    if self.enemy.left and math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 70:
-                        self.enemy.attacking = True
+                if self.y > man.y and not(self.attacking):
+                    self.y -= self.vel
+                elif self.y < man.y and not(self.attacking):
+                    self.y += self.vel
 
-                    if self.enemy.right and math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 30:
-                        self.enemy.attacking = True
-
-                    if self.enemy.y > man.y and not(self.enemy.attacking):
-                        self.enemy.y -= self.enemy.vel
-                    elif self.enemy.y < man.y and not(self.enemy.attacking):
-                        self.enemy.y += self.enemy.vel
-
-                    if self.enemy.x > man.x and not(self.enemy.attacking): # + self.enemy.width:
-                        self.enemy.x -= self.enemy.vel
-                        self.enemy.left = True
-                        self.enemy.right = False
-                    elif self.enemy.x < man.x and not(self.enemy.attacking): # - self.enemy.width/2:
-                        self.enemy.x += self.enemy.vel
-                        self.enemy.left = False
-                        self.enemy.right = True
+                if self.x > man.x and not(self.attacking): # + self.width:
+                    self.x -= self.vel
+                    self.left = True
+                    self.right = False
+                elif self.x < man.x and not(self.attacking): # - self.width/2:
+                    self.x += self.vel
+                    self.left = False
+                    self.right = True
 
 class playerController():
     def __init__(self, player):
@@ -252,7 +246,7 @@ class gameController():
 def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
-    pygame.draw.rect(window, (255,255,255), (man.x + 25, man.y, man.width, man.height), 1)       #hitbox
+    #pygame.draw.rect(window, (255,255,255), (man.x + 25, man.y, man.width, man.height), 1)       #hitbox
     #pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
     skel.draw(window)
     man.draw(window)
@@ -264,7 +258,6 @@ def redrawGameWindow():
 skel = skeleton("Skeleton", 700, 100, 64, 64, 1)
 man = player(200, 410, 32, 80)
 control = playerController(man)
-enemyController = enemyController(skel)
 controlCenter = gameController(man, skel)
 run = True
 clock = pygame.time.Clock()
@@ -275,7 +268,7 @@ while run:
 
     control.movePlayer(keys)
 
-    enemyController.moveEnemy()
+    skel.move()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
