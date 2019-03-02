@@ -1,22 +1,9 @@
 import math
 import pygame
+from resources import *
 pygame.init()
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
-
-#Skeleton Assets
-skelWalkRight = [pygame.image.load("Assets/Skeletons/Walking_0.gif"), pygame.image.load("Assets/Skeletons/Walking_1.gif"), pygame.image.load("Assets/Skeletons/Walking_2.gif"), pygame.image.load("Assets/Skeletons/Walking_3.gif"), pygame.image.load("Assets/Skeletons/Walking_4.gif"), pygame.image.load("Assets/Skeletons/Walking_5.gif"), pygame.image.load("Assets/Skeletons/Walking_6.gif"), pygame.image.load("Assets/Skeletons/Walking_7.gif"), pygame.image.load("Assets/Skeletons/Walking_8.gif"), pygame.image.load("Assets/Skeletons/Walking_9.gif"), pygame.image.load("Assets/Skeletons/Walking_10.gif"), pygame.image.load("Assets/Skeletons/Walking_11.gif"), pygame.image.load("Assets/Skeletons/Walking_12.gif") ]
-skelIdle = pygame.image.load("Assets/Skeletons/Skeleton Idle.gif")
-skelAttack = [pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_0.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_1.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_2.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_3.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_4.gif"), (55,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_5.gif"), (55,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_6.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_7.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_8.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_9.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_10.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_11.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_12.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_13.gif"), (100,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_14.gif"), (55,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_15.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_16.gif"), (50,64)), pygame.transform.scale(pygame.image.load("Assets/Skeletons/Attack_17.gif"), (50,64))]
-
-#Player Assets
-walkRight =[pygame.image.load("Assets/Player/knight iso char_run right_0.png"), pygame.image.load("Assets/Player/knight iso char_run right_1.png"), pygame.image.load("Assets/Player/knight iso char_run right_2.png"), pygame.image.load("Assets/Player/knight iso char_run right_3.png"), pygame.image.load("Assets/Player/knight iso char_run right_4.png"), pygame.image.load("Assets/Player/knight iso char_run right_5.png")]
-walkLeft = [pygame.image.load("Assets/Player/knight iso char_run left_0.png"), pygame.image.load("Assets/Player/knight iso char_run left_1.png"), pygame.image.load("Assets/Player/knight iso char_run left_2.png"), pygame.image.load("Assets/Player/knight iso char_run left_3.png"), pygame.image.load("Assets/Player/knight iso char_run left_4.png"), pygame.image.load("Assets/Player/knight iso char_run left_5.png")]
-walkUp = [pygame.image.load("Assets/Player/knight iso char_run up_0.png"), pygame.image.load("Assets/Player/knight iso char_run up_1.png"), pygame.image.load("Assets/Player/knight iso char_run up_2.png"), pygame.image.load("Assets/Player/knight iso char_run up_3.png"), pygame.image.load("Assets/Player/knight iso char_run up_4.png"), pygame.image.load("Assets/Player/knight iso char_run up_4.png")]
-walkDown = [pygame.image.load("Assets/Player/knight iso char_run down_0.png"), pygame.image.load("Assets/Player/knight iso char_run down_1.png"), pygame.image.load("Assets/Player/knight iso char_run down_2.png"), pygame.image.load("Assets/Player/knight iso char_run down_3.png"), pygame.image.load("Assets/Player/knight iso char_run down_4.png"), pygame.image.load("Assets/Player/knight iso char_run down_4.png")]
-idle = [pygame.image.load("Assets/Player/knight iso char_idle_0.png"), pygame.image.load("Assets/Player/knight iso char_idle_1.png"), pygame.image.load("Assets/Player/knight iso char_idle_2.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png"), pygame.image.load("Assets/Player/knight iso char_idle_3.png")]
-
-health = [pygame.image.load("Assets/Dungeon/HP_Value_0.png"), pygame.image.load("Assets/Dungeon/HP_Value_1.png"), pygame.image.load("Assets/Dungeon/HP_Value_2.png"), pygame.image.load("Assets/Dungeon/HP_Value_3.png"), pygame.image.load("Assets/Dungeon/HP_Value_4.png"), pygame.image.load("Assets/Dungeon/HP_Value_5.png")]
 
 class player():
     def __init__(self, x, y, width, height):
@@ -24,7 +11,7 @@ class player():
         self.y = y
         self.width = width
         self.height = height
-        self.vel = 3
+        self.vel = 2
         self.left = False
         self.right = False
         self.up = False
@@ -100,26 +87,27 @@ class enemyController():
         if self.enemy.type == "Skeleton":
             if self.enemy.walkCount + 1 > 36:
                 self.enemy.walkCount = 0
-            if self.enemy.attackCount + 1 > 48:
+            if self.enemy.attackCount + 1 > 54:
                 self.enemy.attackCount = 0
+                self.enemy.attacking = False
 
             if self.enemy.attacking and self.enemy.right:
-                window.blit(skelAttack[self.enemy.attackCount//6], (self.enemy.x,self.enemy.y))
+                window.blit(pygame.transform.scale2x(skelAttack[self.enemy.attackCount//3]), (self.enemy.x, self.enemy.y - 9))
                 self.enemy.attackCount += 1
             elif self.enemy.attacking and self.enemy.left:
-                window.blit(pygame.transform.flip(skelAttack[self.enemy.attackCount//6], True, False), (self.enemy.x,self.enemy.y))
+                window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.enemy.attackCount//3], True, False)), (self.enemy.x - 40, self.enemy.y - 9))
                 self.enemy.attackCount += 1
 
             if not(self.enemy.standing) and not(self.enemy.attacking):
                 if self.enemy.left:
-                    window.blit(pygame.transform.scale(pygame.transform.flip(skelWalkRight[self.enemy.walkCount//3], True, False), (50,64)), (self.enemy.x,self.enemy.y))
+                    window.blit(pygame.transform.scale2x(pygame.transform.flip(skelWalkRight[self.enemy.walkCount//3], True, False)), (self.enemy.x,self.enemy.y))
                     self.enemy.walkCount += 1
                 if self.enemy.right:
-                    window.blit(pygame.transform.scale(skelWalkRight[self.enemy.walkCount//3], (50,64)), (self.enemy.x,self.enemy.y))
+                    window.blit(pygame.transform.scale2x(skelWalkRight[self.enemy.walkCount//3]), (self.enemy.x,self.enemy.y))
                     self.enemy.walkCount += 1
             elif self.enemy.standing:
-                window.blit(pygame.transform.scale(skelIdle, (50,64)), (self.enemy.x,self.enemy.y))
-
+                window.blit(pygame.transform.scale2x(skelIdle[self.enemy.walkCount//4]), (self.enemy.x,self.enemy.y))
+                self.enemy.walkCount += 1
 
     def moveEnemy(self):
         if self.enemy.type == "Skeleton":
@@ -127,9 +115,8 @@ class enemyController():
                 self.enemy.standing = False
                 man.detected = True
                 if man.detected == True and not(self.enemy.attacking):
-                    if self.enemy.right:
-                        if(math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 70):
-                            self.enemy.attacking = True
+                    if self.enemy.right and math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 10:
+                        self.enemy.attacking = True
 
                     if(math.sqrt(pow((man.x - self.enemy.x), 2) + pow((man.y - self.enemy.y), 2)) <= 70):
                         self.enemy.attacking = True
