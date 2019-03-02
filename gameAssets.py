@@ -81,48 +81,54 @@ class enemy():
         self.Dmg = False
         self.healthLevel = 5
 
+    def printType(self):
+        print(self.type)
+
+class skeleton(enemy):
+    def __init__(self, type, x, y, width, height, vel):
+        super().__init__(type, x, y, width, height, vel)
+    def draw(self, window):
+        if self.type == "Skeleton":
+            if self.walkCount + 1 > 36:
+                self.walkCount = 0
+            if self.attackCount + 1 > 54:
+                self.attackCount = 0
+                self.attacking = False
+                self.left = False
+                self.right = False
+                self.Dmg = False
+                man.damaged  = False
+                #self.standing = True
+
+            if self.attacking and self.right:
+                window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
+                self.attackCount += 1
+                if self.attackCount >= 24 and self.attackCount <= 33:
+                    pygame.draw.rect(window, (255,255,255), (self.x + 20, self.y, 64, 64), 1)
+                    self.Dmg = True
+
+
+            elif self.attacking and self.left:
+                window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
+                self.attackCount += 1
+                if self.attackCount >= 24 and self.attackCount <= 33:
+                    pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, 64, 64), 1)
+                    self.Dmg = True
+
+            if not(self.standing) and not(self.attacking):
+                if self.left:
+                    window.blit(pygame.transform.scale2x(pygame.transform.flip(skelWalkRight[self.walkCount//3], True, False)), (self.x,self.y))
+                    self.walkCount += 1
+                if self.right:
+                    window.blit(pygame.transform.scale2x(skelWalkRight[self.walkCount//3]), (self.x,self.y))
+                    self.walkCount += 1
+            elif self.standing:
+                window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
+                self.walkCount += 1
+
 class enemyController():
     def __init__(self, enemy):
         self.enemy = enemy
-
-    def draw(self, window):
-        if self.enemy.type == "Skeleton":
-            if self.enemy.walkCount + 1 > 36:
-                self.enemy.walkCount = 0
-            if self.enemy.attackCount + 1 > 54:
-                self.enemy.attackCount = 0
-                self.enemy.attacking = False
-                self.enemy.left = False
-                self.enemy.right = False
-                self.enemy.Dmg = False
-                man.damaged  = False
-                #self.enemy.standing = True
-
-            if self.enemy.attacking and self.enemy.right:
-                window.blit(pygame.transform.scale2x(skelAttack[self.enemy.attackCount//3]), (self.enemy.x, self.enemy.y - 9))
-                self.enemy.attackCount += 1
-                if self.enemy.attackCount >= 24 and self.enemy.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), (self.enemy.x + 20, self.enemy.y, 64, 64), 1)
-                    self.enemy.Dmg = True
-
-
-            elif self.enemy.attacking and self.enemy.left:
-                window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.enemy.attackCount//3], True, False)), (self.enemy.x - 40, self.enemy.y - 9))
-                self.enemy.attackCount += 1
-                if self.enemy.attackCount >= 24 and self.enemy.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), (self.enemy.x - 35, self.enemy.y, 64, 64), 1)
-                    self.enemy.Dmg = True
-
-            if not(self.enemy.standing) and not(self.enemy.attacking):
-                if self.enemy.left:
-                    window.blit(pygame.transform.scale2x(pygame.transform.flip(skelWalkRight[self.enemy.walkCount//3], True, False)), (self.enemy.x,self.enemy.y))
-                    self.enemy.walkCount += 1
-                if self.enemy.right:
-                    window.blit(pygame.transform.scale2x(skelWalkRight[self.enemy.walkCount//3]), (self.enemy.x,self.enemy.y))
-                    self.enemy.walkCount += 1
-            elif self.enemy.standing:
-                window.blit(pygame.transform.scale2x(skelIdle[self.enemy.walkCount//4]), (self.enemy.x,self.enemy.y))
-                self.enemy.walkCount += 1
 
     def moveEnemy(self):
         if self.enemy.type == "Skeleton":
@@ -234,9 +240,12 @@ class gameController():
         self.enemy = enemy
 
     def damageTracker(self, window):
-        if self.player.x + self.player.width + 25 >= self.enemy.x - 35 and self.player.x + self.player.width + 25 <= self.enemy.x + 20 + self.enemy.width and self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height and self.enemy.Dmg and not(self.player.damaged ):
+        if self.player.x + self.player.width + 25 >= self.enemy.x - 35 and self.player.x + self.player.width + 25 <= self.enemy.x + 20 + self.enemy.width and ((self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height/2 >= self.enemy.y and self.player.y + self.player.height/2 <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height >= self.enemy.y and self.player.y + self.player.height <= self.enemy.y + self.enemy.height)) and self.enemy.Dmg and not(self.player.damaged):
             self.player.healthLevel -= 1
-            self.player.damaged  = True
+            self.player.damaged = True
+        elif self.player.x + 25 >= self.enemy.x - 35 and self.player.x + 25 <= self.enemy.x + 20 + self.enemy.width and ((self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height/2 >= self.enemy.y and self.player.y + self.player.height/2 <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height >= self.enemy.y and self.player.y + self.player.height <= self.enemy.y + self.enemy.height)) and self.enemy.Dmg and not(self.player.damaged):
+            self.player.healthLevel -= 1
+            self.player.damaged = True
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
         self.enemy.Dmg = False
 
@@ -245,14 +254,14 @@ def redrawGameWindow():
     window.fill((0,0,0))
     pygame.draw.rect(window, (255,255,255), (man.x + 25, man.y, man.width, man.height), 1)       #hitbox
     #pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
-    enemyController.draw(window)
+    skel.draw(window)
     man.draw(window)
     controlCenter.damageTracker(window)
 
     pygame.display.update()
 
 
-skel = enemy("Skeleton", 700, 100, 64, 64, 1)
+skel = skeleton("Skeleton", 700, 100, 64, 64, 1)
 man = player(200, 410, 32, 80)
 control = playerController(man)
 enemyController = enemyController(skel)
@@ -265,7 +274,6 @@ while run:
     keys = pygame.key.get_pressed()                 #keylistener
 
     control.movePlayer(keys)
-#    control.damageTracker()
 
     enemyController.moveEnemy()
 
