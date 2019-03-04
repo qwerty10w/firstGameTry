@@ -5,6 +5,10 @@ pygame.init()
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
 
+enemies = pygame.sprite.Group()
+
+
+
 class level():
     def loadFile(self, filename="level.map"):
         self.map = []
@@ -88,8 +92,9 @@ class level():
         return image, overlays
 
 
-class player():
+class player(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
+        pygame.sprite.Sprite.__init__(self)
         self.x = x
         self.y = y
         self.width = width
@@ -106,6 +111,7 @@ class player():
         self.detected = False
         self.damaged  = False
         self.hitbox = (self.x + 25, self.y, self.width, self.height)
+        self.rect = pygame.Rect(self.x + 25, self.y, self.width, self.height)
     def draw(self, window):
         if self.walkCount + 1 > 30:
             self.walkCount = 0
@@ -144,9 +150,11 @@ class player():
                 self.walkCount +=1
             if self.up:
                 window.blit(pygame.image.load("Assets/Player/knight iso char_idle up_0.png"), (self.x, self.y))
+        self.rect = pygame.Rect(self.x + 25, self.y, self.width, self.height)
 
-class enemy():
+class enemy(pygame.sprite.Sprite):
     def __init__(self, type, x, y, width, height, vel):
+        pygame.sprite.Sprite.__init__(self, enemies)
         self.type = type
         self.x = x
         self.y = y
@@ -172,6 +180,7 @@ class skeleton(enemy):
         super().__init__(type, x, y, width, height, vel)
         self.hitboxR = (self.x + 15, self.y, self.width + 5, self.height)
         self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
     def draw(self, window):
         if self.type == "Skeleton":
             if self.walkCount + 1 > 36:
@@ -188,7 +197,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), self.hitboxR, 1) #hitbox
+#                    pygame.draw.rect(window, (255,255,255), (self.x + 15, self.y, self.width + 5, self.height), 1) #hitbox
                     self.Dmg = True
 
 
@@ -196,7 +205,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    pygame.draw.rect(window, (255,255,255), self.hitboxL, 1) #hitbox
+#                    pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, self.width + 6, self.height), 1) #hitbox
                     self.Dmg = True
 
             if not(self.standing) and not(self.attacking):
@@ -239,19 +248,26 @@ class skeleton(enemy):
         self.hitboxR = (self.x + 15, self.y, self.width + 5, self.height)
         self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
 
+        if self.left:
+            self.rect = pygame.Rect(self.x - 35, self.y, self.width + 6, self.height)
+        elif self.right:
+            self.rect = pygame.Rect(self.x + 15, self.y, self.width + 5, self.height)
+        else:
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
 class playerController():
     def __init__(self, player):
         self.player = player
 
     def movePlayer(self, keys):
-        if keys[pygame.K_LEFT] and keys[pygame.K_UP] and man.x > 0 and man.y > 0:
+        if keys[pygame.K_a] and keys[pygame.K_w] and man.x > 0 and man.y > 0:
             self.player.x -= self.player.vel
             self.player.y -= self.player.vel
             self.player.up = True
             self.player.down = False
             self.player.left = True
             self.player.standing = False
-        elif keys[pygame.K_LEFT] and keys[pygame.K_DOWN] and man.x > 0 and man.y < 600 - man.height - 30:
+        elif keys[pygame.K_a] and keys[pygame.K_s] and man.x > 0 and man.y < 600 - man.height - 30:
             self.player.x -= self.player.vel
             self.player.y += self.player.vel
             self.player.up = False
@@ -260,7 +276,7 @@ class playerController():
             self.player.right = False
             self.player.right = False
             self.player.standing = False
-        elif keys[pygame.K_RIGHT] and keys[pygame.K_UP] and man.x < 800 - man.width and man.y > 0:
+        elif keys[pygame.K_d] and keys[pygame.K_w] and man.x < 800 - man.width and man.y > 0:
             self.player.x += self.player.vel
             self.player.y -= self.player.vel
             self.player.up = True
@@ -268,7 +284,7 @@ class playerController():
             self.player.left = False
             self.player.right = True
             self.player.standing = False
-        elif keys[pygame.K_RIGHT] and keys[pygame.K_DOWN] and man.x < 800 - man.width and man.y < 600 - man.height - 30:
+        elif keys[pygame.K_d] and keys[pygame.K_s] and man.x < 800 - man.width and man.y < 600 - man.height - 30:
             self.player.x += self.player.vel
             self.player.y += self.player.vel
             self.player.up = False
@@ -276,28 +292,28 @@ class playerController():
             self.player.left = False
             self.player.right = True
             self.player.standing = False
-        elif keys[pygame.K_LEFT] and man.x > 0:
+        elif keys[pygame.K_a] and man.x > 0:
             self.player.x -= self.player.vel
             self.player.up = False
             self.player.down = False
             self.player.left = True
             self.player.right = False
             self.player.standing = False
-        elif keys[pygame.K_RIGHT] and man.x < 800 - man.width:
+        elif keys[pygame.K_d] and man.x < 800 - man.width:
             self.player.x += self.player.vel
             self.player.up = False
             self.player.down = False
             self.player.left = False
             self.player.right = True
             self.player.standing = False
-        elif keys[pygame.K_UP] and man.y > 0:
+        elif keys[pygame.K_w] and man.y > 0:
             self.player.y -= self.player.vel
             self.player.up = True
             self.player.down = False
             self.player.left = False
             self.player.right = False
             self.player.standing = False
-        elif keys[pygame.K_DOWN] and man.y < 600 - man.height - 30:
+        elif keys[pygame.K_s] and man.y < 600 - man.height - 30:
             self.player.y += self.player.vel
             self.player.up = False
             self.player.down = True
@@ -317,19 +333,17 @@ class playerController():
             return
 
 class gameController():
-    def __init__(self, player, enemy):
+    def __init__(self, player):
         self.player = player
-        self.enemy = enemy
 
     def damageTracker(self, window):
-        if self.player.x + self.player.width + 25 >= self.enemy.x - 35 and self.player.x + self.player.width + 25 <= self.enemy.x + 20 + self.enemy.width and ((self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height/2 >= self.enemy.y and self.player.y + self.player.height/2 <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height >= self.enemy.y and self.player.y + self.player.height <= self.enemy.y + self.enemy.height)) and self.enemy.Dmg and not(self.player.damaged):
-            self.player.healthLevel -= 1
-            self.player.damaged = True
-        elif self.player.x + 25 >= self.enemy.x - 35 and self.player.x + 25 <= self.enemy.x + 20 + self.enemy.width and ((self.player.y >= self.enemy.y and self.player.y <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height/2 >= self.enemy.y and self.player.y + self.player.height/2 <= self.enemy.y + self.enemy.height) or (self.player.y + self.player.height >= self.enemy.y and self.player.y + self.player.height <= self.enemy.y + self.enemy.height)) and self.enemy.Dmg and not(self.player.damaged):
-            self.player.healthLevel -= 1
-            self.player.damaged = True
+        attackers = pygame.sprite.spritecollide(self.player, enemies, False)
+        for attacker in attackers:
+            if attacker.rect.colliderect(self.player.rect) and not(self.player.damaged) and attacker.Dmg:
+                self.player.healthLevel -= 1
+                self.player.damaged = True
+                attacker.Dmg = False
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
-        self.enemy.Dmg = False
 
 
 def loadTileTable(filename, width, height):
@@ -347,9 +361,10 @@ def loadTileTable(filename, width, height):
 def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
-    #pygame.draw.rect(window, (255,255,255), man.hitbox, 1)       #hitbox
-    #pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
+#    pygame.draw.rect(window, (255,255,255), (man.x + 25, man.y, man.width, man.height), 1)       #hitbox
+#    pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
     skel.draw(window)
+    skel2.draw(window)
     man.draw(window)
     controlCenter.damageTracker(window)
 
@@ -357,9 +372,10 @@ def redrawGameWindow():
 
 
 skel = skeleton("Skeleton", 700, 100, 64, 64, 1)
+skel2 = skeleton("Skeleton", 100, 300, 64, 64, 1)
 man = player(200, 410, 32, 80)
 control = playerController(man)
-controlCenter = gameController(man, skel)
+controlCenter = gameController(man)
 run = True
 clock = pygame.time.Clock()
 while run:
@@ -370,6 +386,7 @@ while run:
     control.movePlayer(keys)
 
     skel.move()
+    skel2.move()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
