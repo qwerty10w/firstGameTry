@@ -5,6 +5,89 @@ pygame.init()
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
 
+class level():
+    def loadFile(self, filename="level.map"):
+        self.map = []
+        self.key = {}
+        parser = ConfigParser.ConfigParser()
+        parser.read(filename)
+        self.tileset = parser.get("level", "tileset")
+        self.map = parser.get("level", "map").split("\n")
+        for section in parser.sections():
+            if len(section) == 1:
+                desc = dict(parser.items(section))
+                self.key[section] = desc
+        self.width = len(self.map[0])
+        self.height = len(self.map)
+
+    def getTile(self, x ,y):
+        try:
+            char = self.map[y][x]
+        except IndexError:
+            return {}
+        try:
+            return self.key[char]
+        except KeyError:
+            return {}
+
+    def getBool(self, x, y, name):
+        value = self.getTile(x, y).get(name)
+        return value in (True, 1, 'true', 'yes', 'True', 'Yes', '1', 'on', 'On')
+
+    def isWall(self, x, y):
+        self.getBool(x, y, "wall")
+
+    def render(self):
+        wall = self.isWall()
+        tiles = MAP_CACHE[self.tileset]
+        image = pygame.Surface((self.width*MAP_TILE_WIDTH, self.height*MAP_TILE_HEIGHT))
+        overlays = {}
+        for map_y, line in enumerate(self.map):
+            for map_x, c in enumerate(line):
+                if wall(map_x, map_y):
+                    # Draw different tiles depending on neighbourhood
+                    if not wall(map_x, map_y+1):
+                        if wall(map_x+1, map_y) and wall(map_x-1, map_y):
+                            tile = 1, 2
+                        elif wall(map_x+1, map_y):
+                            tile = 0, 2
+                        elif wall(map_x-1, map_y):
+                            tile = 2, 2
+                        else:
+                            tile = 3, 2
+                    else:
+                        if wall(map_x+1, map_y+1) and wall(map_x-1, map_y+1):
+                            tile = 1, 1
+                        elif wall(map_x+1, map_y+1):
+                            tile = 0, 1
+                        elif wall(map_x-1, map_y+1):
+                            tile = 2, 1
+                        else:
+                            tile = 3, 1
+                    # Add overlays if the wall may be obscuring something
+                    if not wall(map_x, map_y-1):
+                        if wall(map_x+1, map_y) and wall(map_x-1, map_y):
+                            over = 1, 0
+                        elif wall(map_x+1, map_y):
+                            over = 0, 0
+                        elif wall(map_x-1, map_y):
+                            over = 2, 0
+                        else:
+                            over = 3, 0
+                        overlays[(map_x, map_y)] = tiles[over[0]][over[1]]
+                else:
+                    try:
+                        tile = self.key[c]['tile'].split(',')
+                        tile = int(tile[0]), int(tile[1])
+                    except (ValueError, KeyError):
+                        # Default to ground tile
+                        tile = 0, 3
+                tile_image = tiles[tile[0]][tile[1]]
+                image.blit(tile_image,
+                           (map_x*MAP_TILE_WIDTH, map_y*MAP_TILE_HEIGHT))
+        return image, overlays
+
+
 class player():
     def __init__(self, x, y, width, height):
         self.x = x
@@ -22,7 +105,7 @@ class player():
         self.healthLevel = 5
         self.detected = False
         self.damaged  = False
-
+        self.hitbox = (self.x + 25, self.y, self.width, self.height)
     def draw(self, window):
         if self.walkCount + 1 > 30:
             self.walkCount = 0
@@ -87,6 +170,8 @@ class enemy():
 class skeleton(enemy):
     def __init__(self, type, x, y, width, height, vel):
         super().__init__(type, x, y, width, height, vel)
+        self.hitboxR = (self.x + 15, self.y, self.width + 5, self.height)
+        self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
     def draw(self, window):
         if self.type == "Skeleton":
             if self.walkCount + 1 > 36:
@@ -98,13 +183,12 @@ class skeleton(enemy):
                 self.right = False
                 self.Dmg = False
                 man.damaged  = False
-                #self.standing = True
 
             if self.attacking and self.right:
                 window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    #pygame.draw.rect(window, (255,255,255), (self.x + 20, self.y, 64, 64), 1) #hitbox
+                    pygame.draw.rect(window, (255,255,255), self.hitboxR, 1) #hitbox
                     self.Dmg = True
 
 
@@ -112,7 +196,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-                    #pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, 64, 64), 1) #hitbox
+                    pygame.draw.rect(window, (255,255,255), self.hitboxL, 1) #hitbox
                     self.Dmg = True
 
             if not(self.standing) and not(self.attacking):
@@ -152,6 +236,8 @@ class skeleton(enemy):
                     self.x += self.vel
                     self.left = False
                     self.right = True
+        self.hitboxR = (self.x + 15, self.y, self.width + 5, self.height)
+        self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
 
 class playerController():
     def __init__(self, player):
@@ -221,6 +307,8 @@ class playerController():
         else:
             self.player.standing = True
 
+        self.player.hitbox =(man.x + 25, man.y, man.width, man.height)
+
         def attack(self, attackType):
             #definition here
             return
@@ -243,10 +331,23 @@ class gameController():
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
         self.enemy.Dmg = False
 
+
+def loadTileTable(filename, width, height):
+    image = pygame.image.load(filename).convert()
+    image_width, image_height = image.get_size()
+    tile_table = []
+    for tile_x in range(0, image_width/width):
+        line = []
+        tile_table.append(line)
+        for tile_y in range(0, image_height/height):
+            rect = (tile_x*width, tile_y*height, width, height)
+            line.append(image.subsurface(rect))
+    return tile_table
+
 def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
-    #pygame.draw.rect(window, (255,255,255), (man.x + 25, man.y, man.width, man.height), 1)       #hitbox
+    #pygame.draw.rect(window, (255,255,255), man.hitbox, 1)       #hitbox
     #pygame.draw.rect(window, (255,255,255), (skel.x, skel.y, skel.width, skel.height), 1)   #hitbox
     skel.draw(window)
     man.draw(window)
