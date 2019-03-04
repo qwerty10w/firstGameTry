@@ -178,9 +178,7 @@ class enemy(pygame.sprite.Sprite):
 class skeleton(enemy):
     def __init__(self, type, x, y, width, height, vel):
         super().__init__(type, x, y, width, height, vel)
-        self.hitboxR = (self.x + 15, self.y, self.width + 5, self.height)
-        self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height - 10)
     def draw(self, window):
         if self.type == "Skeleton":
             if self.walkCount + 1 > 36:
@@ -197,7 +195,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-#                    pygame.draw.rect(window, (255,255,255), (self.x + 15, self.y, self.width + 5, self.height), 1) #hitbox
+#                    pygame.draw.rect(window, (255,255,255), (self.x + 15, self.y, self.width, self.height), 1) #hitbox
                     self.Dmg = True
 
 
@@ -205,7 +203,7 @@ class skeleton(enemy):
                 window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
                 self.attackCount += 1
                 if self.attackCount >= 24 and self.attackCount <= 33:
-#                    pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, self.width + 6, self.height), 1) #hitbox
+#                    pygame.draw.rect(window, (255,255,255), (self.x - 35, self.y, self.width, self.height), 1) #hitbox
                     self.Dmg = True
 
             if not(self.standing) and not(self.attacking):
@@ -249,9 +247,9 @@ class skeleton(enemy):
         self.hitboxL = (self.x - 35, self.y, self.width + 15, self.height)
 
         if self.left:
-            self.rect = pygame.Rect(self.x - 35, self.y, self.width + 6, self.height)
+            self.rect = pygame.Rect(self.x - 35, self.y, self.width, self.height - 10)
         elif self.right:
-            self.rect = pygame.Rect(self.x + 15, self.y, self.width + 5, self.height)
+            self.rect = pygame.Rect(self.x + 15, self.y, self.width, self.height - 10)
         else:
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
@@ -343,6 +341,8 @@ class gameController():
                 self.player.healthLevel -= 1
                 self.player.damaged = True
                 attacker.Dmg = False
+            else:
+                attackers.pop(attackers.index(attacker))
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
 
 
