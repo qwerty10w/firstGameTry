@@ -124,23 +124,23 @@ class player(pygame.sprite.Sprite):
         if self.attacking:
             if self.right:
                 window.blit(attackRight[self.attackCount//10], (self.x + 18,self.y))
-                self.attackCount +=1
-                if self.attackCount//10 >= 1:
+                self.attackCount +=2
+                if self.attackCount//10 == 1:
                     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.left:
                 window.blit(attackLeft[self.attackCount//10], (self.x - 18,self.y))
-                self.attackCount +=1
-                if self.attackCount//10 >= 1:
+                self.attackCount +=2
+                if self.attackCount//10 == 1:
                     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.up:
                 window.blit(attackUp[self.attackCount//10], (self.x, self.y))
-                self.attackCount +=1
-                if self.attackCount//10 >= 1:
+                self.attackCount +=2
+                if self.attackCount//10 == 1:
                     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.down:
                 window.blit(attackDown[self.attackCount//10], (self.x, self.y))
-                self.attackCount +=1
-                if self.attackCount//10 >= 1:
+                self.attackCount +=2
+                if self.attackCount//10 == 1:
                     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
         elif not(self.standing) and not(self.attacking):
             if self.left and self.up:
@@ -225,19 +225,27 @@ class skeleton(enemy):
             if self.hitCount + 1 > 24:
                 self.hitCount = 0
                 self.damaged = False
+                self.attacking = False
+                self.standing = True
+                # self.left = False
+                # self.right = False
 
             if self.damaged:
+                self.attacking = False
+                self.attackCount = 0
+                self.Dmg = False
                 if self.right:
-                    window.blit(pygame.transform.scale2x(skelHit[self.hitCount//3]), (self.x, self.y))
+                    window.blit(pygame.transform.scale2x(skelHit[self.hitCount//3]), (self.x - 12, self.y + 3))
                     self.hitCount += 1
                 elif self.left:
-                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelHit[self.hitCount//3]), True, False), (self.x, self.y))
+                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelHit[self.hitCount//3]), True, False), (self.x - 3, self.y + 3))
                     self.hitCount += 1
 
             if self.attacking:
                 if self.right:
                     window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
                     self.attackCount += 1
+                    self.Dmg = False
                     if self.attackCount >= 24 and self.attackCount <= 33:
                         pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
                         self.Dmg = True
@@ -245,6 +253,7 @@ class skeleton(enemy):
                 elif self.left:
                     window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
                     self.attackCount += 1
+                    self.Dmg = False
                     if self.attackCount >= 24 and self.attackCount <= 33:
                         pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
                         self.Dmg = True
@@ -257,9 +266,20 @@ class skeleton(enemy):
                     window.blit(pygame.transform.scale2x(skelWalkRight[self.walkCount//3]), (self.x,self.y))
                     self.walkCount += 1
             elif self.standing:
-                window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
-                self.walkCount += 1
+                if self.right:
+                    window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
+                    self.walkCount += 1
+                elif self.left:
+                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelIdle[self.walkCount//4]), True, False), (self.x,self.y))
+                    self.walkCount += 1
     def move(self):
+        if self.standing:
+            if self.x > man.x:
+                self.left = True
+                self.right = False
+            else:
+                self.left = False
+                self.right = True
         if (math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 425):
             self.standing = False
             man.detected = True
@@ -298,14 +318,6 @@ class playerController():
     def movePlayer(self, keys):
         if keys[pygame.K_j]:
             self.player.attacking = True
-            if self.player.right:
-                self.player.attackRect = pygame.Rect(self.player.x + self.player.width + 15, self.player.y + (self.player.height/2), 60, 32)
-            elif self.player.left:
-                self.player.attackRect = pygame.Rect(self.player.x - self.player.width + 15, self.player.y + (self.player.height/2), 60, 32)
-            elif self.player.up:
-                self.player.attackRect = pygame.Rect(self.player.x, self.player.y - 3, 80, 32)
-            elif self.player.down:
-                self.player.attackRect = pygame.Rect(self.player.x, self.player.y + 40, 80, 32)
         elif not(self.player.attacking):
             if keys[pygame.K_a] and keys[pygame.K_w] and man.x > 0 and man.y > 0:
                 self.player.x -= self.player.vel
@@ -371,6 +383,14 @@ class playerController():
                 self.player.standing = True
 
         self.player.rect = pygame.Rect(self.player.x + 25, self.player.y, self.player.width, self.player.height)
+        if self.player.right:
+            self.player.attackRect = pygame.Rect(self.player.x + self.player.width + 7, self.player.y + (self.player.height/2), 60, 32)
+        elif self.player.left:
+            self.player.attackRect = pygame.Rect(self.player.x - self.player.width + 7, self.player.y + (self.player.height/2), 60, 32)
+        elif self.player.up:
+            self.player.attackRect = pygame.Rect(self.player.x, self.player.y - 3, 80, 32)
+        elif self.player.down:
+            self.player.attackRect = pygame.Rect(self.player.x, self.player.y + 40, 80, 32)
 
         def actions(self, actionType):
             #definition here
@@ -387,7 +407,7 @@ class gameController():
                 self.player.damaged = True
                 attacker.Dmg = False
                 print("player hit")
-            if self.player.attackRect.colliderect(attacker.rect) and not(attacker.damaged):
+            if self.player.attackRect.colliderect(attacker.rect) and not(attacker.damaged) and self.player.attacking:
                 if not(attacker.damaged):
                     attacker.healthLevel -= self.player.Pwr
                     attacker.damaged = True
@@ -422,7 +442,7 @@ def redrawGameWindow():
 
 
 skel = skeleton("Skeleton", 700, 100, 50, 64, 1)
-skel2 = skeleton("Skeleton", 100, 300, 64, 64, 1)
+skel2 = skeleton("Skeleton", 100, 300, 50, 64, 0)
 man = player(200, 410, 32, 80)
 control = playerController(man)
 controlCenter = gameController(man)
@@ -436,7 +456,7 @@ while run:
     control.movePlayer(keys)
 
     skel.move()
-    #skel2.move
+    skel2.move()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
