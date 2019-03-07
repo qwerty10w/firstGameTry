@@ -195,12 +195,14 @@ class enemy(pygame.sprite.Sprite):
         self.walkCount = 0
         self.attackCount = 0
         self.hitCount = 0
+        self.deathCount = 0
         self.standing = True
         self.attacking = False
         self.Dmg = False
         self.damaged = False
         self.Pwr = 1
         self.healthLevel = 5
+        self.alive = True
 
     def printType(self):
         print(self.type)
@@ -210,7 +212,7 @@ class skeleton(enemy):
         super().__init__(type, x, y, width, height, vel)
         self.attackRect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        self.healthLevel = 2
+        self.healthLevel = 1
     def draw(self, window):
         if self.type == "Skeleton":
             if self.walkCount + 1 > 36:
@@ -227,88 +229,105 @@ class skeleton(enemy):
                 self.damaged = False
                 self.attacking = False
                 self.standing = True
-                # self.left = False
-                # self.right = False
-
-            if self.damaged:
-                self.attacking = False
-                self.attackCount = 0
-                self.Dmg = False
+            if self.healthLevel == 0:
+                self.alive = False
                 if self.right:
-                    window.blit(pygame.transform.scale2x(skelHit[self.hitCount//3]), (self.x - 12, self.y + 3))
-                    self.hitCount += 1
-                elif self.left:
-                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelHit[self.hitCount//3]), True, False), (self.x - 3, self.y + 3))
-                    self.hitCount += 1
-
-            if self.attacking:
-                if self.right:
-                    window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
-                    self.attackCount += 1
-                    self.Dmg = False
-                    if self.attackCount >= 24 and self.attackCount <= 33:
-                        pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
-                        self.Dmg = True
-
-                elif self.left:
-                    window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
-                    self.attackCount += 1
-                    self.Dmg = False
-                    if self.attackCount >= 24 and self.attackCount <= 33:
-                        pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
-                        self.Dmg = True
-
-            if not(self.standing) and not(self.attacking) and not(self.damaged):
+                    if self.deathCount + 1 <= 28:
+                        window.blit(pygame.transform.scale2x(skelDeath[self.deathCount//2]), (self.x - 20, self.y))
+                        self.deathCount += 1
                 if self.left:
-                    window.blit(pygame.transform.scale2x(pygame.transform.flip(skelWalkRight[self.walkCount//3], True, False)), (self.x,self.y))
-                    self.walkCount += 1
+                    if self.deathCount + 1 <= 28:
+                        window.blit(pygame.transform.flip(pygame.transform.scale2x(skelDeath[self.deathCount//2]), True, False), (self.x, self.y))
+                        self.deathCount += 1
+            if self.alive:
+                if self.damaged:
+                    self.attacking = False
+                    self.attackCount = 0
+                    self.Dmg = False
+                    if self.right:
+                        window.blit(pygame.transform.scale2x(skelHit[self.hitCount//3]), (self.x - 12, self.y + 3))
+                        self.hitCount += 1
+                    elif self.left:
+                        window.blit(pygame.transform.flip(pygame.transform.scale2x(skelHit[self.hitCount//3]), True, False), (self.x - 3, self.y + 3))
+                        self.hitCount += 1
+
+                if self.attacking:
+                    if self.right:
+                        window.blit(pygame.transform.scale2x(skelAttack[self.attackCount//3]), (self.x, self.y - 9))
+                        self.attackCount += 1
+                        self.Dmg = False
+                        if self.attackCount >= 24 and self.attackCount <= 33:
+                            #pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
+                            self.Dmg = True
+
+                    elif self.left:
+                        window.blit(pygame.transform.scale2x(pygame.transform.flip(skelAttack[self.attackCount//3], True, False)), (self.x - 40, self.y - 9))
+                        self.attackCount += 1
+                        self.Dmg = False
+                        if self.attackCount >= 24 and self.attackCount <= 33:
+                            #pygame.draw.rect(window, (255,255,255), self.attackRect, 1) #hitbox
+                            self.Dmg = True
+
+                if not(self.standing) and not(self.attacking) and not(self.damaged):
+                    if self.left:
+                        window.blit(pygame.transform.scale2x(pygame.transform.flip(skelWalkRight[self.walkCount//3], True, False)), (self.x,self.y))
+                        self.walkCount += 1
+                    if self.right:
+                        window.blit(pygame.transform.scale2x(skelWalkRight[self.walkCount//3]), (self.x,self.y))
+                        self.walkCount += 1
+                elif self.standing:
+                    if self.right:
+                        window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
+                        self.walkCount += 1
+                    elif self.left:
+                        window.blit(pygame.transform.flip(pygame.transform.scale2x(skelIdle[self.walkCount//4]), True, False), (self.x,self.y))
+                        self.walkCount += 1
+
+            if not(self.alive) and self.deathCount >= 28:
                 if self.right:
-                    window.blit(pygame.transform.scale2x(skelWalkRight[self.walkCount//3]), (self.x,self.y))
-                    self.walkCount += 1
-            elif self.standing:
-                if self.right:
-                    window.blit(pygame.transform.scale2x(skelIdle[self.walkCount//4]), (self.x,self.y))
-                    self.walkCount += 1
-                elif self.left:
-                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelIdle[self.walkCount//4]), True, False), (self.x,self.y))
-                    self.walkCount += 1
+                    window.blit(pygame.transform.scale2x(skelDeath[14]), (self.x - 20, self.y))
+                if self.left:
+                    window.blit(pygame.transform.flip(pygame.transform.scale2x(skelDeath[14]), True, False), (self.x, self.y))
+
     def move(self):
-        if self.standing:
-            if self.x > man.x:
-                self.left = True
-                self.right = False
-            else:
-                self.left = False
-                self.right = True
-        if (math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 425):
-            self.standing = False
-            man.detected = True
-            if man.detected == True and not(self.attacking) and not(self.damaged):
-                if self.left and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 70:
-                    self.attacking = True
-
-                if self.right and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 30:
-                    self.attacking = True
-
-                if self.y > man.y and not(self.attacking):
-                    self.y -= self.vel
-                elif self.y < man.y and not(self.attacking):
-                    self.y += self.vel
-
-                if self.x > man.x and not(self.attacking): # + self.width:
-                    self.x -= self.vel
+        if self.alive:
+            if self.standing:
+                if self.x > man.x:
                     self.left = True
                     self.right = False
-                elif self.x < man.x and not(self.attacking): # - self.width/2:
-                    self.x += self.vel
+                else:
                     self.left = False
                     self.right = True
+            if (math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 425):
+                self.standing = False
+                man.detected = True
+                if man.detected == True and not(self.attacking) and not(self.damaged):
+                    if self.left and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 70:
+                        self.attacking = True
 
-        if self.left:
-            self.attackRect = pygame.Rect(self.x - 35, self.y, self.width, self.height)
-        elif self.right:
-            self.attackRect = pygame.Rect(self.x + 35, self.y, self.width, self.height)
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+                    if self.right and math.sqrt(pow((man.x - self.x), 2) + pow((man.y - self.y), 2)) <= 30:
+                        self.attacking = True
+
+                    if self.y > man.y and not(self.attacking):
+                        self.y -= self.vel
+                    elif self.y < man.y and not(self.attacking):
+                        self.y += self.vel
+
+                    if self.x > man.x and not(self.attacking): # + self.width:
+                        self.x -= self.vel
+                        self.left = True
+                        self.right = False
+                    elif self.x < man.x and not(self.attacking): # - self.width/2:
+                        self.x += self.vel
+                        self.left = False
+                        self.right = True
+
+            if self.left:
+                self.attackRect = pygame.Rect(self.x - 35, self.y, self.width, self.height)
+                self.rect = pygame.Rect(self.x + 15, self.y, self.width - 13, self.height)
+            elif self.right:
+                self.attackRect = pygame.Rect(self.x + 35, self.y, self.width, self.height)
+                self.rect = pygame.Rect(self.x, self.y, self.width - 13, self.height)
 
 
 class playerController():
@@ -384,9 +403,9 @@ class playerController():
 
         self.player.rect = pygame.Rect(self.player.x + 25, self.player.y, self.player.width, self.player.height)
         if self.player.right:
-            self.player.attackRect = pygame.Rect(self.player.x + self.player.width + 7, self.player.y + (self.player.height/2), 60, 32)
+            self.player.attackRect = pygame.Rect(self.player.x + self.player.width + 3, self.player.y + (self.player.height/2), 60, 32)
         elif self.player.left:
-            self.player.attackRect = pygame.Rect(self.player.x - self.player.width + 7, self.player.y + (self.player.height/2), 60, 32)
+            self.player.attackRect = pygame.Rect(self.player.x - self.player.width + 3, self.player.y + (self.player.height/2), 60, 32)
         elif self.player.up:
             self.player.attackRect = pygame.Rect(self.player.x, self.player.y - 3, 80, 32)
         elif self.player.down:
@@ -431,8 +450,8 @@ def loadTileTable(filename, width, height):
 def redrawGameWindow():
 #    window.blit(bg, (0,0))
     window.fill((0,0,0))
-    pygame.draw.rect(window, (255,255,255), man.rect, 1)       #hitbox
-    pygame.draw.rect(window, (255,255,255), skel.rect, 1)   #hitbox
+    #pygame.draw.rect(window, (255,255,255), man.rect, 1)       #hitbox
+    #pygame.draw.rect(window, (255,255,255), skel.rect, 1)   #hitbox
     skel.draw(window)
     skel2.draw(window)
     man.draw(window)
