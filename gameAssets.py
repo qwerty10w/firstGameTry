@@ -125,23 +125,23 @@ class player(pygame.sprite.Sprite):
             if self.right:
                 window.blit(attackRight[self.attackCount//10], (self.x + 18,self.y))
                 self.attackCount +=2
-                if self.attackCount//10 == 1:
-                    pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
+                # if self.attackCount//10 == 1:
+                #     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.left:
                 window.blit(attackLeft[self.attackCount//10], (self.x - 18,self.y))
                 self.attackCount +=2
-                if self.attackCount//10 == 1:
-                    pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
+                # if self.attackCount//10 == 1:
+                #     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.up:
                 window.blit(attackUp[self.attackCount//10], (self.x, self.y))
                 self.attackCount +=2
-                if self.attackCount//10 == 1:
-                    pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
+                # if self.attackCount//10 == 1:
+                #     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
             elif self.down:
                 window.blit(attackDown[self.attackCount//10], (self.x, self.y))
                 self.attackCount +=2
-                if self.attackCount//10 == 1:
-                    pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
+                # if self.attackCount//10 == 1:
+                #     pygame.draw.rect(window, (255,255,255), self.attackRect, 1)
         elif not(self.standing) and not(self.attacking):
             if self.left and self.up:
                 window.blit(walkUp[self.walkCount//6], (self.x,self.y))
@@ -403,9 +403,9 @@ class playerController():
 
         self.player.rect = pygame.Rect(self.player.x + 25, self.player.y, self.player.width, self.player.height)
         if self.player.right:
-            self.player.attackRect = pygame.Rect(self.player.x + self.player.width + 3, self.player.y + (self.player.height/2), 60, 32)
+            self.player.attackRect = pygame.Rect(self.player.x + self.player.width, self.player.y + (self.player.height/2), 60, 32)
         elif self.player.left:
-            self.player.attackRect = pygame.Rect(self.player.x - self.player.width + 3, self.player.y + (self.player.height/2), 60, 32)
+            self.player.attackRect = pygame.Rect(self.player.x - self.player.width, self.player.y + (self.player.height/2), 60, 32)
         elif self.player.up:
             self.player.attackRect = pygame.Rect(self.player.x, self.player.y - 3, 80, 32)
         elif self.player.down:
