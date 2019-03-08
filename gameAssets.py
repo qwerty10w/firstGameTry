@@ -2,6 +2,10 @@ import math
 import pygame
 from resources import *
 pygame.init()
+pygame.font.init()
+
+
+font = pygame.font.Font('Assets/pixelFont.ttf', 32)
 window = pygame.display.set_mode((800,600))
 pygame.display.set_caption("First Game")
 
@@ -91,6 +95,14 @@ class level():
                            (map_x*MAP_TILE_WIDTH, map_y*MAP_TILE_HEIGHT))
         return image, overlays
 
+class textBox():
+    def __init__(self, x, y, text):
+        self.x = x
+        self.y = y
+        self.text = text
+    def displayText(self):
+            textSurf = font.render(self.text, False, (255, 255, 255))
+            window.blit(textSurf, (self.x, self.y))
 
 class player(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
@@ -212,7 +224,7 @@ class skeleton(enemy):
         super().__init__(type, x, y, width, height, vel)
         self.attackRect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        self.healthLevel = 1
+        self.healthLevel = 5
     def draw(self, window):
         if self.type == "Skeleton":
             if self.walkCount + 1 > 36:
@@ -329,7 +341,6 @@ class skeleton(enemy):
                 self.attackRect = pygame.Rect(self.x + 35, self.y, self.width, self.height)
                 self.rect = pygame.Rect(self.x, self.y, self.width - 13, self.height)
 
-
 class playerController():
     def __init__(self, player):
         self.player = player
@@ -418,6 +429,7 @@ class playerController():
 class gameController():
     def __init__(self, player):
         self.player = player
+        self.pause = False
 
     def damageTracker(self, window):
         for attacker in enemies:
@@ -434,6 +446,23 @@ class gameController():
                     print("hit")
         window.blit(pygame.transform.scale(health[self.player.healthLevel], (135, 150)), (-20,-65))
 
+    def pauseToggle(self, window):
+        while self.pause:
+            pauseScreen = font.render("Paused", False, (255, 255, 255))
+            window.blit(pauseScreen, (350, 200))
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.pause = False
+                        break
+                if event.type == pygame.QUIT:
+                    pygame.quit()   #quit
+
+            #print(self.pause)
+            pygame.display.update()
+            clock.tick(10)
+
+
 
 def loadTileTable(filename, width, height):
     image = pygame.image.load(filename).convert()
@@ -448,7 +477,7 @@ def loadTileTable(filename, width, height):
     return tile_table
 
 def redrawGameWindow():
-#    window.blit(bg, (0,0))
+    #window.blit(bg, (0,0))
     window.fill((0,0,0))
     #pygame.draw.rect(window, (255,255,255), man.rect, 1)       #hitbox
     #pygame.draw.rect(window, (255,255,255), skel.rect, 1)   #hitbox
@@ -456,20 +485,21 @@ def redrawGameWindow():
     skel2.draw(window)
     man.draw(window)
     controlCenter.damageTracker(window)
+    controlCenter.pauseToggle(window)
 
     pygame.display.update()
-
 
 skel = skeleton("Skeleton", 700, 100, 50, 64, 1)
 skel2 = skeleton("Skeleton", 100, 300, 50, 64, 0)
 man = player(200, 410, 32, 80)
+
+pause = textBox(man.x + 50, man.y, "Pause")
 control = playerController(man)
 controlCenter = gameController(man)
 run = True
 clock = pygame.time.Clock()
 while run:
     clock.tick(50)                                  #framerate
-
     keys = pygame.key.get_pressed()                 #keylistener
 
     control.movePlayer(keys)
@@ -480,7 +510,10 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False #quit
-
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                controlCenter.pause = True
+#    print(pygame.font.get_fonts())
     redrawGameWindow()
 
 pygame.quit()
