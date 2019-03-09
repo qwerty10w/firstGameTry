@@ -2,15 +2,12 @@ import math
 import pygame
 from resources import *
 pygame.init()
-pygame.font.init()
 
-
-font = pygame.font.Font('Assets/pixelFont.ttf', 32)
 window = pygame.display.set_mode((800,600))
+gameMap = pytmx.load_pygame("Assets/DungeonAssets/character and tileset/Map.tmx")
 pygame.display.set_caption("First Game")
 
 enemies = pygame.sprite.Group()
-
 
 
 class level():
@@ -190,6 +187,21 @@ class player(pygame.sprite.Sprite):
                     self.walkCount +=1
                 if self.up:
                     window.blit(pygame.image.load("Assets/Player/knight iso char_idle up_0.png"), (self.x, self.y))
+
+class inventory():
+    def __init__(self):
+        self.categories = ["Items", "Weapons", "Armor", "Misc"]
+        self.show = False
+
+    def displayInventory(self, window):
+        while self.show:
+            window.blit(pygame.transform.scale(menuWindow, (50, 100)), (man.x + 20, man.y + 15))
+            for category in self.categories:
+                for i in range(0, 60, 20):
+                    cat = textBox(man.x + 25, man.y + 25 + i, category)
+                    cat.displayText()
+                    print(category)
+
 
 class enemy(pygame.sprite.Sprite):
     def __init__(self, type, x, y, width, height, vel):
@@ -449,7 +461,7 @@ class gameController():
     def pauseToggle(self, window):
         while self.pause:
             pauseScreen = font.render("Paused", False, (255, 255, 255))
-            window.blit(pauseScreen, (350, 200))
+            window.blit(pauseScreen, (352, 30))
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -478,7 +490,13 @@ def loadTileTable(filename, width, height):
 
 def redrawGameWindow():
     #window.blit(bg, (0,0))
-    window.fill((0,0,0))
+#    window.fill((0,0,0))
+    for layer in gameMap.visible_layers:
+        for x, y, gid in layer:
+            tile = gameMap.get_tile_image_by_gid(gid)
+            if tile:
+                window.blit(tile, (x*gameMap.tilewidth, y*gameMap.tileheight))
+
     #pygame.draw.rect(window, (255,255,255), man.rect, 1)       #hitbox
     #pygame.draw.rect(window, (255,255,255), skel.rect, 1)   #hitbox
     skel.draw(window)
@@ -486,12 +504,14 @@ def redrawGameWindow():
     man.draw(window)
     controlCenter.damageTracker(window)
     controlCenter.pauseToggle(window)
+    inventory.displayInventory(window)
 
     pygame.display.update()
 
 skel = skeleton("Skeleton", 700, 100, 50, 64, 1)
 skel2 = skeleton("Skeleton", 100, 300, 50, 64, 0)
 man = player(200, 410, 32, 80)
+inventory = inventory()
 
 pause = textBox(man.x + 50, man.y, "Pause")
 control = playerController(man)
