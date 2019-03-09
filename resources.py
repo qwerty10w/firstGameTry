@@ -27,4 +27,5 @@ health = [pygame.image.load("Assets/Dungeon/HP_Value_0.png"), pygame.image.load(
 
 #Menu Assets
 menuWindow = pygame.image.load("Assets/Menu Window.png")
-font = pygame.font.Font('Assets/pixelFont.ttf', 48)
+titleFont = pygame.font.Font('Assets/pixelFont.ttf', 48)
+menuFont = pygame.font.Font("Assets/pixelFont.ttf", 32)

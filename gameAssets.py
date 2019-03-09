@@ -93,12 +93,13 @@ class level():
         return image, overlays
 
 class textBox():
-    def __init__(self, x, y, text):
+    def __init__(self, x, y, text, font):
         self.x = x
         self.y = y
         self.text = text
+        self.font = font
     def displayText(self):
-            textSurf = font.render(self.text, False, (255, 255, 255))
+            textSurf = self.font.render(self.text, False, (255, 255, 255))
             window.blit(textSurf, (self.x, self.y))
 
 class player(pygame.sprite.Sprite):
@@ -194,14 +195,13 @@ class inventory():
         self.show = False
 
     def displayInventory(self, window):
-        while self.show:
-            window.blit(pygame.transform.scale(menuWindow, (50, 100)), (man.x + 20, man.y + 15))
+        if self.show:
+            i = 0
+            window.blit(pygame.transform.scale(menuWindow, (200, 200)), (man.x + 80, man.y - 200))
             for category in self.categories:
-                for i in range(0, 60, 20):
-                    cat = textBox(man.x + 25, man.y + 25 + i, category)
-                    cat.displayText()
-                    print(category)
-
+                cat = textBox(man.x + 100, man.y - 190 + i, category, menuFont)
+                cat.displayText()
+                i += 40
 
 class enemy(pygame.sprite.Sprite):
     def __init__(self, type, x, y, width, height, vel):
@@ -460,7 +460,7 @@ class gameController():
 
     def pauseToggle(self, window):
         while self.pause:
-            pauseScreen = font.render("Paused", False, (255, 255, 255))
+            pauseScreen = titleFont.render("Paused", False, (255, 255, 255))
             window.blit(pauseScreen, (352, 30))
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -513,7 +513,7 @@ skel2 = skeleton("Skeleton", 100, 300, 50, 64, 0)
 man = player(200, 410, 32, 80)
 inventory = inventory()
 
-pause = textBox(man.x + 50, man.y, "Pause")
+pause = textBox(man.x + 50, man.y, "Pause", titleFont)
 control = playerController(man)
 controlCenter = gameController(man)
 run = True
@@ -533,6 +533,11 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 controlCenter.pause = True
+            if event.key == pygame.K_i:
+                if inventory.show:
+                    inventory.show = False
+                else:
+                    inventory.show = True
 #    print(pygame.font.get_fonts())
     redrawGameWindow()
 
