@@ -29,3 +29,4 @@ health = [pygame.image.load("Assets/Dungeon/HP_Value_0.png"), pygame.image.load(
 menuWindow = pygame.image.load("Assets/Menu Window.png")
 titleFont = pygame.font.Font('Assets/pixelFont.ttf', 48)
 menuFont = pygame.font.Font("Assets/pixelFont.ttf", 32)
+pointer = pygame.image.load("Assets/GUI/pointer.png")

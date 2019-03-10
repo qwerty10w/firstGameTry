@@ -178,7 +178,7 @@ class player(pygame.sprite.Sprite):
                 window.blit(walkDown[self.walkCount//6], (self.x,self.y))
                 self.walkCount +=1
         else:
-            if not(self.attacking):
+            if not(self.attacking) and self.standing:
                 if self.left:
                     window.blit(walkLeft[0], (self.x, self.y))
                 if self.right:
@@ -192,16 +192,27 @@ class player(pygame.sprite.Sprite):
 class inventory():
     def __init__(self):
         self.categories = ["Items", "Weapons", "Armor", "Misc"]
+        self.itemList = []
+        self.weaponList = []
+        self.armorList = []
+        self.miscList = []
         self.show = False
+        self.pointerPos = 0
 
     def displayInventory(self, window):
         if self.show:
+            man.left = False
+            man.right = False
+            man.up = False
+            man.down = True
+            man.standing = True
             i = 0
             window.blit(pygame.transform.scale(menuWindow, (200, 200)), (man.x + 80, man.y - 200))
             for category in self.categories:
                 cat = textBox(man.x + 100, man.y - 190 + i, category, menuFont)
                 cat.displayText()
                 i += 40
+            window.blit(pointer, (man.x + 150 + 80, man.y - 182 + self.pointerPos))
 
 class enemy(pygame.sprite.Sprite):
     def __init__(self, type, x, y, width, height, vel):
@@ -358,69 +369,72 @@ class playerController():
         self.player = player
 
     def movePlayer(self, keys):
-        if keys[pygame.K_j]:
-            self.player.attacking = True
-        elif not(self.player.attacking):
-            if keys[pygame.K_a] and keys[pygame.K_w] and man.x > 0 and man.y > 0:
-                self.player.x -= self.player.vel
-                self.player.y -= self.player.vel
-                self.player.up = True
-                self.player.down = False
-                self.player.left = True
-                self.player.standing = False
-            elif keys[pygame.K_a] and keys[pygame.K_s] and man.x > 0 and man.y < 600 - man.height - 30:
-                self.player.x -= self.player.vel
-                self.player.y += self.player.vel
-                self.player.up = False
-                self.player.down = True
-                self.player.left = True
-                self.player.right = False
-                self.player.right = False
-                self.player.standing = False
-            elif keys[pygame.K_d] and keys[pygame.K_w] and man.x < 800 - man.width and man.y > 0:
-                self.player.x += self.player.vel
-                self.player.y -= self.player.vel
-                self.player.up = True
-                self.player.down = False
-                self.player.left = False
-                self.player.right = True
-                self.player.standing = False
-            elif keys[pygame.K_d] and keys[pygame.K_s] and man.x < 800 - man.width and man.y < 600 - man.height - 30:
-                self.player.x += self.player.vel
-                self.player.y += self.player.vel
-                self.player.up = False
-                self.player.down = True
-                self.player.left = False
-                self.player.right = True
-                self.player.standing = False
-            elif keys[pygame.K_a] and man.x > 0:
-                self.player.x -= self.player.vel
-                self.player.up = False
-                self.player.down = False
-                self.player.left = True
-                self.player.right = False
-                self.player.standing = False
-            elif keys[pygame.K_d] and man.x < 800 - man.width:
-                self.player.x += self.player.vel
-                self.player.up = False
-                self.player.down = False
-                self.player.left = False
-                self.player.right = True
-                self.player.standing = False
-            elif keys[pygame.K_w] and man.y > 0:
-                self.player.y -= self.player.vel
-                self.player.up = True
-                self.player.down = False
-                self.player.left = False
-                self.player.right = False
-                self.player.standing = False
-            elif keys[pygame.K_s] and man.y < 600 - man.height - 30:
-                self.player.y += self.player.vel
-                self.player.up = False
-                self.player.down = True
-                self.player.left = False
-                self.player.right = False
-                self.player.standing = False
+        if not(inventory.show):
+            if keys[pygame.K_j]:
+                self.player.attacking = True
+            elif not(self.player.attacking):
+                if keys[pygame.K_a] and keys[pygame.K_w] and man.x > 0 and man.y > 0:
+                    self.player.x -= self.player.vel
+                    self.player.y -= self.player.vel
+                    self.player.up = True
+                    self.player.down = False
+                    self.player.left = True
+                    self.player.standing = False
+                elif keys[pygame.K_a] and keys[pygame.K_s] and man.x > 0 and man.y < 600 - man.height - 30:
+                    self.player.x -= self.player.vel
+                    self.player.y += self.player.vel
+                    self.player.up = False
+                    self.player.down = True
+                    self.player.left = True
+                    self.player.right = False
+                    self.player.right = False
+                    self.player.standing = False
+                elif keys[pygame.K_d] and keys[pygame.K_w] and man.x < 800 - man.width and man.y > 0:
+                    self.player.x += self.player.vel
+                    self.player.y -= self.player.vel
+                    self.player.up = True
+                    self.player.down = False
+                    self.player.left = False
+                    self.player.right = True
+                    self.player.standing = False
+                elif keys[pygame.K_d] and keys[pygame.K_s] and man.x < 800 - man.width and man.y < 600 - man.height - 30:
+                    self.player.x += self.player.vel
+                    self.player.y += self.player.vel
+                    self.player.up = False
+                    self.player.down = True
+                    self.player.left = False
+                    self.player.right = True
+                    self.player.standing = False
+                elif keys[pygame.K_a] and man.x > 0:
+                    self.player.x -= self.player.vel
+                    self.player.up = False
+                    self.player.down = False
+                    self.player.left = True
+                    self.player.right = False
+                    self.player.standing = False
+                elif keys[pygame.K_d] and man.x < 800 - man.width:
+                    self.player.x += self.player.vel
+                    self.player.up = False
+                    self.player.down = False
+                    self.player.left = False
+                    self.player.right = True
+                    self.player.standing = False
+                elif keys[pygame.K_w] and man.y > 0:
+                    self.player.y -= self.player.vel
+                    self.player.up = True
+                    self.player.down = False
+                    self.player.left = False
+                    self.player.right = False
+                    self.player.standing = False
+                elif keys[pygame.K_s] and man.y < 600 - man.height - 30:
+                    self.player.y += self.player.vel
+                    self.player.up = False
+                    self.player.down = True
+                    self.player.left = False
+                    self.player.right = False
+                    self.player.standing = False
+                else:
+                    self.player.standing = True
             else:
                 self.player.standing = True
 
@@ -489,7 +503,6 @@ def loadTileTable(filename, width, height):
     return tile_table
 
 def redrawGameWindow():
-    #window.blit(bg, (0,0))
 #    window.fill((0,0,0))
     for layer in gameMap.visible_layers:
         for x, y, gid in layer:
@@ -531,13 +544,21 @@ while run:
         if event.type == pygame.QUIT:
             run = False #quit
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_ESCAPE and not(inventory.show):
                 controlCenter.pause = True
             if event.key == pygame.K_i:
                 if inventory.show:
                     inventory.show = False
                 else:
                     inventory.show = True
+            if inventory.show:
+                if event.key == pygame.K_s and inventory.pointerPos < 120:
+                    inventory.pointerPos += 40
+                if event.key == pygame.K_w and inventory.pointerPos > 0:
+                    inventory.pointerPos -= 40
+                if event.key == pygame.K_ESCAPE:
+                    inventory.show = False
+
 #    print(pygame.font.get_fonts())
     redrawGameWindow()
 
